@@ -1,11 +1,12 @@
 import React from 'react';
-import { Card, Col } from "react-bootstrap";
+import { Card, Col, Button, ButtonGroup } from "react-bootstrap";
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { loadProduct } from '../../redux/dispatchers/products';
+import { userSelector } from '../../redux/selectors/user';
 
 const ProductCard = props => {
-  const { product } = props;
+  const { product, user } = props;
 
   const handleView = async id => {
     try {
@@ -29,9 +30,11 @@ const ProductCard = props => {
           <Card.Subtitle className="mb-2 text-muted">Price: {product.price}, Quantity: {product.quantity}</Card.Subtitle>
           <Card.Text>{product.description}</Card.Text>
         </Card.Body>
-        <Card.Footer>
-          <Card.Link onClick={() => handleView(product.id)}>View Product</Card.Link>
-          <Card.Link onClick={() => handleEdit(product.id)}>Edit Product</Card.Link>
+        <Card.Footer className="text-center">
+          <ButtonGroup size="sm">
+            <Button variant="outline-info" onClick={() => handleView(product.id)}>View Product</Button>
+            {user ? <Button variant="outline-info" onClick={() => handleEdit(product.id)} className="float-right">Edit Product</Button> : <></>}
+          </ButtonGroup>
         </Card.Footer>
       </Card>
     </Col>
@@ -39,6 +42,7 @@ const ProductCard = props => {
 }
 
 const mapStateToProps = state => ({
+  user: userSelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -5,11 +5,12 @@ import { useFormState } from 'react-use-form-state';
 import { productSelector } from '../../redux/selectors/products';
 import { ConfirmationModal } from './ConfirmationModal';
 import { deleteProduct, addProduct, updateProduct } from '../../redux/dispatchers/products';
+import { userSelector } from '../../redux/selectors/user';
 
 const Product = props => {
   const [confirm, showConfirm] = useState(false);
   const [modalConfig, setModalConfig] = useState({});
-  const { mode, product, deleteProduct, addProduct, updateProduct } = props;
+  const { mode, user, product, deleteProduct, addProduct, updateProduct } = props;
   const [productObject, inputs] = useFormState(mode.hasData ? { ...product } : {
     name: '',
     price: 0.01,
@@ -21,6 +22,12 @@ const Product = props => {
   useEffect(() => {
     resetMode();
   }, [mode]);
+
+  useEffect(() => {
+    if ((mode.isEditable) && (!user)) {
+      props.history.push('/');
+    }
+  }, [user]);
 
   const resetMode = () => {
     if (!mode.hasData) {
@@ -70,7 +77,7 @@ const Product = props => {
   }
 
   const normalize = data => {
-    const result = {...data};
+    const result = { ...data };
     const price = +result.price;
     result.price = isNaN(price) ? 0.01 : price;
     const quantity = +result.quantity;
@@ -93,10 +100,12 @@ const Product = props => {
   }
 
   mode.buttons.forEach(type => {
-    if (type === 'reset') buttons.push(<Button variant="warning" type="button" className="mr-2" key="reset" onClick={resetMode}>Reset</Button>);
-    else if (type === 'save') buttons.push(<Button variant="success" type="button" className="mr-2" onClick={handleSaveClick} key="save" disabled={checkValid()}>Save</Button>);
-    else if (type === 'edit') buttons.push(<Button variant="info" type="button" className="mr-2" key="edit" onClick={() => props.history.push('/edit')}>Edit</Button>);
-    else buttons.push(<Button variant="danger" type="button" className="float-right" key="delete" onClick={handleDeleteClick}>Delete</Button>);
+    if (user) {
+      if (type === 'reset') buttons.push(<Button size="sm" variant="warning" type="button" className="mr-2" key="reset" onClick={resetMode}>Reset</Button>);
+      else if (type === 'save') buttons.push(<Button size="sm" variant="success" type="button" className="mr-2" onClick={handleSaveClick} key="save" disabled={checkValid()}>Save</Button>);
+      else if (type === 'edit') buttons.push(<Button size="sm" variant="info" type="button" className="mr-2" key="edit" onClick={() => props.history.push('/edit')}>Edit</Button>);
+      else buttons.push(<Button size="sm" variant="danger" type="button" className="float-right" key="delete" onClick={handleDeleteClick}>Delete</Button>);
+    }
   })
 
   return (
@@ -138,7 +147,7 @@ const Product = props => {
               </Form>
             </Card.Body>
             <Card.Footer>
-              {Object.entries(productObject.errors).map(([k,e]) => {if(e) return <p key={k} className="text-danger">{e}</p>; return <React.Fragment key={k}></React.Fragment>;})}
+              {Object.entries(productObject.errors).map(([k, e]) => { if (e) return <p key={k} className="text-danger">{e}</p>; return <React.Fragment key={k}></React.Fragment>; })}
               {buttons}
             </Card.Footer>
           </Card>
@@ -151,6 +160,7 @@ const Product = props => {
 
 const mapStateToProps = state => ({
   product: productSelector(state),
+  user: userSelector(state),
 });
 
 const mapDispatchToProps = dispatch => ({
